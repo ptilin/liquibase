@@ -3,6 +3,7 @@ package liquibase;
 import java.io.*;
 import java.text.DateFormat;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -11,6 +12,8 @@ import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import liquibase.change.Change;
+import liquibase.change.core.TagDatabaseChange;
 import liquibase.change.CheckSum;
 import liquibase.change.core.RawSQLChange;
 import liquibase.changelog.*;
@@ -1021,6 +1024,43 @@ public class Liquibase {
         } finally {
             lockService.releaseLock();
         }
+    }
+
+    public boolean tagExistsInChangeSets(String tag, Contexts contexts, LabelExpression labelExpression) throws LiquibaseException {
+        if (tag == null)
+            return false;
+        boolean foundTag = false;
+        try {
+            List<ChangeSet> changeSetList = listUnrunChangeSets(contexts, labelExpression, false);
+            if (changeSetList.size() == 0)
+                return false;
+            List<ChangeSetFilter> changeSetFilters = new ArrayList<ChangeSetFilter>(4);
+            changeSetFilters.add(new ShouldRunChangeSetFilter(database, ignoreClasspathPrefix));
+            changeSetFilters.add(new ContextChangeSetFilter(contexts));
+            changeSetFilters.add(new LabelChangeSetFilter(labelExpression));
+            changeSetFilters.add(new DbmsChangeSetFilter(database));
+
+            for (ChangeSet changeSet : changeSetList) {
+                for (ChangeSetFilter filter : changeSetFilters) {
+                    ChangeSetFilterResult acceptsResult = filter.accepts(changeSet);
+                    if (! acceptsResult.isAccepted()) {
+                        break;
+                    }
+                }
+                for (Change change : changeSet.getChanges()) {
+                    if (change instanceof TagDatabaseChange) {
+                        if (tag.equals( ((TagDatabaseChange) change).getTag() ) ) {
+                            foundTag = true;
+                            break;
+                        }
+                    }
+                }
+                if (foundTag)
+                    break;
+            }
+        } finally {
+        }
+        return foundTag;
     }
 
     public void updateTestingRollback(String contexts) throws LiquibaseException {
