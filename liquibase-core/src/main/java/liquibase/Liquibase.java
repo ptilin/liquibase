@@ -1041,12 +1041,16 @@ public class Liquibase {
             changeSetFilters.add(new DbmsChangeSetFilter(database));
 
             for (ChangeSet changeSet : changeSetList) {
+                boolean filtered = false;
                 for (ChangeSetFilter filter : changeSetFilters) {
                     ChangeSetFilterResult acceptsResult = filter.accepts(changeSet);
                     if (! acceptsResult.isAccepted()) {
+                        filtered = true;
                         break;
                     }
                 }
+                if (filtered)
+                    continue;
                 for (Change change : changeSet.getChanges()) {
                     if (change instanceof TagDatabaseChange) {
                         if (tag.equals( ((TagDatabaseChange) change).getTag() ) ) {
