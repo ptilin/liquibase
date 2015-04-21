@@ -16,7 +16,7 @@
 
     <properties>
         <bundle.namespace>liquibase.*</bundle.namespace>
-        <project.version>3.3.0</project.version>
+        <project.version>${project.parent.version}</project.version>
     </properties>
 
     <dependencies>
@@ -237,7 +237,7 @@
                         <configuration>
                             <descriptors>
                                 <!-- create the distribution archives -->
-                                <descriptor>src/main/resources/assembly/bin.xml</descriptor>
+                                <descriptor>src/main/resources/assembly/patched.xml</descriptor>
                             </descriptors>
                             <!--<archive>
                               <manifestFile>../liquibase-core/src/main/resources/META-INF/MANIFEST.MF</manifestFile>

@@ -274,7 +274,8 @@ public class Main {
             || "calculateCheckSum".equalsIgnoreCase(command)
             || "dbDoc".equalsIgnoreCase(command)
             || "tag".equalsIgnoreCase(command)
-            || "tagExists".equalsIgnoreCase(command)) {
+            || "tagExists".equalsIgnoreCase(command)
+            || "tagExistsInChangeSets".equalsIgnoreCase(command)) {
 
             if (commandParams.size() > 0 && commandParams.iterator().next().startsWith("-")) {
                 messages.add("unexpected command parameters: "+commandParams);
@@ -372,6 +373,7 @@ public class Main {
                 || "updateTestingRollback".equalsIgnoreCase(arg)
                 || "tag".equalsIgnoreCase(arg)
                 || "tagExists".equalsIgnoreCase(arg)
+                || "tagExistsInChangeSets".equalsIgnoreCase(arg)
                 || "listLocks".equalsIgnoreCase(arg)
                 || "dropAll".equalsIgnoreCase(arg)
                 || "releaseLocks".equalsIgnoreCase(arg)
@@ -535,7 +537,11 @@ public class Main {
         stream.println("");
         stream.println("Maintenance Commands");
         stream.println(" tag <tag string>          'Tags' the current database state for future rollback");
-        stream.println(" tagExists <tag string>    Checks whether the given tag is already existing");
+        stream.println(" tagExists <tag string>    Checks whether the given tag is already set in");
+        stream.println("                           database");
+        stream.println(" tagExistsInChangeSets <tag string>");
+        stream.println("                           Checks whether the given tag is set in pending");
+        stream.println("                           Change Sets");
         stream.println(" status [--verbose]        Outputs count (list if --verbose) of unrun changesets");
         stream.println(" unexpectedChangeSets [--verbose]");
         stream.println("                           Outputs count (list if --verbose) of changesets run");
@@ -1102,6 +1108,15 @@ public class Main {
                     }
 
                     liquibase.update(commandParams.iterator().next(), new Contexts(contexts), new LabelExpression(labels), getOutputWriter());
+                } else if ( "tagExistsInChangeSets".equalsIgnoreCase(command) ) {
+                    String tag = commandParams.iterator().next();
+                    boolean exists = liquibase.tagExistsInChangeSets(tag, new Contexts(contexts), new LabelExpression(labels));
+                    if (exists) {
+                        System.err.println("The tag " + tag + " is defined in pending ChangeSet(s)");
+                    } else {
+                        System.err.println("The tag " + tag + " is not defined in pending ChangeSet(s)");
+                    }
+                    return;
                 } else if ("updateSQL".equalsIgnoreCase(command)) {
                     liquibase.update(new Contexts(contexts), new LabelExpression(labels), getOutputWriter());
                 } else if ("rollback".equalsIgnoreCase(command)) {
